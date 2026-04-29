@@ -20,9 +20,9 @@ public class AppointmentsController : ControllerBase
     }
 
     [HttpGet]
-    public async Task<IActionResult> GetAllAsync()
+    public async Task<IActionResult> GetAllAsync(string? status = null, string? patientLastName = null)
     {
-        return Ok(await _appointmentService.getAllAppointments());
+        return Ok(await _appointmentService.getAllAppointments(status, patientLastName));
     }
 
     [HttpPost]

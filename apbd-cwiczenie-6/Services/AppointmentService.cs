@@ -12,9 +12,9 @@ public class AppointmentService : IAppointmentService
         this._appointmentRepository = appointmentRepository;
     }
 
-    public async Task<List<AppointmentListDto>> getAllAppointments()
+    public async Task<List<AppointmentListDto>> getAllAppointments(string? status = null, string? patientLastName = null)
     {
-        return await _appointmentRepository.getAllAppointmentsAsync();
+        return await _appointmentRepository.getAllAppointmentsAsync(status, patientLastName);
     }
 
     public Task<bool> addAppointmentAsync(CreateAppointmentRequestDto appointment)

@@ -13,11 +13,25 @@ public class AppointmentRepository : IAppointmentRepository
         _connectionString = config.GetConnectionString("DefaultConnection") ?? throw new InvalidOperationException("Lack of ConnectioString \"DefaultConnection\" in configuration.");
     }
     
-    public async Task<List<AppointmentListDto>> getAllAppointmentsAsync()
+    public async Task<List<AppointmentListDto>> getAllAppointmentsAsync(string? status = null, string? patientLastName = null)
     {
         var resultList = new List<AppointmentListDto>();
         using var conn = new SqlConnection(_connectionString);
-        using var comm = new  SqlCommand("SELECT * FROM Appointments a JOIN Patients p ON p.IdPatient = a.IdPatient", conn);
+        using var comm = new  SqlCommand("SELECT " +
+                                         "a.IdAppointment, " +
+                                         "a.AppointmentDate, " +
+                                         "a.Status, " +
+                                         "a.Reason, " +
+                                         "p.FirstName + N' ' + p.LastName AS PatientFullName, " +
+                                         "p.Email AS PatientEmail " +
+                                         "FROM dbo.Appointments a " +
+                                         "JOIN dbo.Patients p ON p.IdPatient = a.IdPatient " +
+                                         "WHERE (@Status IS NULL OR a.Status = @Status) " +
+                                         "AND (@PatientLastName IS NULL OR p.LastName = @PatientLastName) " +
+                                         "ORDER BY a.AppointmentDate", conn);
+        comm.Parameters.AddWithValue("@Status", status);
+        comm.Parameters.AddWithValue("@PatientLastName", patientLastName);
+        
         await conn.OpenAsync();
         await using var reader = await comm.ExecuteReaderAsync();
         while (await reader.ReadAsync())
@@ -28,8 +42,8 @@ public class AppointmentRepository : IAppointmentRepository
                 AppointmentDate =  (DateTime) reader["AppointmentDate"],
                 Status = (string) reader["Status"],
                 Reason = (string) reader["Reason"],
-                PatientFullName = (string) reader["FirstName"] + "  " + reader["LastName"],
-                PatientEmail = (string) reader["Email"]
+                PatientFullName = (string) reader["PatientFullName"],
+                PatientEmail = (string) reader["PatientEmail"]
             });
         }
         return resultList;
