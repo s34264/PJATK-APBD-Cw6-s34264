@@ -1,0 +1,59 @@
+﻿using Microsoft.AspNetCore.Mvc;
+using apbd_cwiczenie_6.DTO;
+using apbd_cwiczenie_6.Models;
+using apbd_cwiczenie_6.Repositories;
+using apbd_cwiczenie_6.Services;
+using Microsoft.Data.SqlClient;
+
+namespace apbd_cwiczenie_6.Controllers;
+
+[ApiController]
+[Route("api/[controller]")]
+public class AppointmentsController : ControllerBase
+{
+    private IAppointmentService _appointmentService;
+
+    
+    public AppointmentsController(IAppointmentService appointmenService)
+    {
+        _appointmentService = appointmenService;
+    }
+
+    [HttpGet]
+    public async Task<IActionResult> GetAllAsync()
+    {
+        return Ok(await _appointmentService.getAllAppointments());
+    }
+
+    [HttpPost]
+    public async Task<ActionResult> PostAppointment([FromBody] CreateAppointmentRequestDto appointment)
+    {
+        try
+        {
+            return Ok(await _appointmentService.addAppointmentAsync(new CreateAppointmentRequestDto()
+            {
+                IdPatient = appointment.IdPatient,
+                IdDoctor = appointment.IdDoctor,
+                Reason = appointment.Reason,
+                AppointmentDate = appointment.AppointmentDate
+            }));
+        }
+        catch(SqlException ex)
+        {
+           return BadRequest(ex.Message);
+        }
+    }
+
+    [HttpPut]
+    public async Task<ActionResult> updateAppointment()
+    {
+        throw new NotImplementedException();
+    }
+
+    [HttpDelete]
+    public async Task<ActionResult> deleteAllAppointment()
+    {
+        throw new NotImplementedException();
+    }
+    
+}

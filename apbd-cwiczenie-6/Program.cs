@@ -1,4 +1,5 @@
 using apbd_cwiczenie_6.Repositories;
+using apbd_cwiczenie_6.Services;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -7,6 +8,7 @@ var builder = WebApplication.CreateBuilder(args);
 builder.Services.AddOpenApi();
 builder.Services.AddControllers();
 builder.Services.AddScoped<IAppointmentRepository, AppointmentRepository>();
+builder.Services.AddScoped<IAppointmentService, AppointmentService>();
 
 var app = builder.Build();
 

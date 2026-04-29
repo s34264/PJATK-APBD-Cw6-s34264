@@ -1,4 +1,5 @@
-﻿using apbd_cwiczenie_6.Models;
+﻿using apbd_cwiczenie_6.DTO;
+using apbd_cwiczenie_6.Models;
 using Microsoft.AspNetCore.Http.HttpResults;
 using Microsoft.Data.SqlClient;
 namespace apbd_cwiczenie_6.Repositories;
@@ -11,50 +12,55 @@ public class AppointmentRepository : IAppointmentRepository
     {
         _connectionString = config.GetConnectionString("DefaultConnection") ?? throw new InvalidOperationException("Lack of ConnectioString \"DefaultConnection\" in configuration.");
     }
-
-    public async Task<bool> TestConnectionAsync()
+    
+    public async Task<List<AppointmentListDto>> getAllAppointmentsAsync()
     {
-        try
-        {
-            using var connection = new SqlConnection(_connectionString);
-            await connection.OpenAsync();
-            return true;
-        }
-        catch (SqlException ex)
-        {
-            Console.WriteLine($"Błąd połączenia z bazą: {ex.Message}");
-            return false;
-        }
-    }
-
-    public async Task<List<string>> GetAllAsync()
-    {
-
-        List<string> result = new List<string>();
-       // ExecuteReader() służy do wykonywania zapytań SELECT, które zwracają wiersze danych. Zwraca obiekt SqlDataReader, który pozwala iterować po wynikach wiersz po wierszu.
-
-        using var connection = new SqlConnection(_connectionString);
-        await connection.OpenAsync();
-
-        // Tworzymy komendę z zapytaniem SELECT
-        using var command = new SqlCommand("SELECT * FROM Appointments", connection);
-
-        // ExecuteReader zwraca SqlDataReader
-        using var reader = await command.ExecuteReaderAsync();
-
-        // Iterujemy po wynikach — Read() przesuwa "kursor" na następny wiersz
+        var resultList = new List<AppointmentListDto>();
+        using var conn = new SqlConnection(_connectionString);
+        using var comm = new  SqlCommand("SELECT * FROM Appointments a JOIN Patients p ON p.IdPatient = a.IdPatient", conn);
+        await conn.OpenAsync();
+        await using var reader = await comm.ExecuteReaderAsync();
         while (await reader.ReadAsync())
         {
-            // Odczytujemy wartości kolumn — przez indeks lub nazwę
-            int id = reader.GetInt32(0);           // kolumna 0 = Id
-            int firstName = reader.GetInt32(1); // kolumna 1 = FirstName
-            int lastName = reader.GetInt32(2);  // kolumna 2 = LastName
-      
-            result.Add($"Student: {id} - {firstName} {lastName}");
+            resultList.Add(new AppointmentListDto()
+            {
+                IdAppointment = (int) reader["IdAppointment"],
+                AppointmentDate =  (DateTime) reader["AppointmentDate"],
+                Status = (string) reader["Status"],
+                Reason = (string) reader["Reason"],
+                PatientFullName = (string) reader["FirstName"] + "  " + reader["LastName"],
+                PatientEmail = (string) reader["Email"]
+            });
         }
+        return resultList;
+    }
 
-        return result;
+    public async Task<bool> insertAppointmentAsync(CreateAppointmentRequestDto appointment)
+    {
+        using var conn = new SqlConnection(_connectionString);
+        using var comm = new  SqlCommand("insert into appointments (IdPatient, IdDoctor, " +
+                                         "AppointmentDate, Status, Reason, InternalNotes, CreatedAt) values (" +
+                                         "@IdPatient, @IdDoctor,@AppointmentDate, @Status, @Reason, @InternalNotes, GETDATE())", conn);
+        await conn.OpenAsync();
 
-    }   
-    
+        comm.Parameters.AddWithValue("@IdPatient", appointment.IdPatient);
+        comm.Parameters.AddWithValue("@IdDoctor", appointment.IdDoctor);
+        comm.Parameters.AddWithValue("@AppointmentDate", appointment.AppointmentDate);
+        comm.Parameters.AddWithValue("@Status", "Scheduled");
+        comm.Parameters.AddWithValue("@Reason", appointment.Reason);
+        comm.Parameters.AddWithValue("@InternalNotes", string.Empty);
+        await comm.ExecuteNonQueryAsync();
+        return true;
+     
+    }
+
+    public Task<bool> deleteAppointmentAsync(int id)
+    {
+        throw new NotImplementedException();
+    }
+
+    public Task<bool> updateAppointmentAsync(UpdateAppointmentRequestDto appointment, int id)
+    {
+        throw new NotImplementedException();
+    }
 }
