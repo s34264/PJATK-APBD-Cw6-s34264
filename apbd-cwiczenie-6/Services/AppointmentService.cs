@@ -22,9 +22,9 @@ public class AppointmentService : IAppointmentService
         return _appointmentRepository.insertAppointmentAsync(appointment);
     }
 
-    public Task<bool> updateAppointmentAsync(UpdateAppointmentRequestDto appointment)
+    public Task<bool> updateAppointmentAsync(UpdateAppointmentRequestDto appointment, int id)
     {
-        throw new NotImplementedException();
+        return _appointmentRepository.updateAppointmentAsync(appointment, id);
     }
 
     public Task<bool> deleteAppointmentAsync(int id)

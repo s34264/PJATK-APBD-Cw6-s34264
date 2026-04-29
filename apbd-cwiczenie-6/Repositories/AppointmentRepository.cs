@@ -66,8 +66,28 @@ public class AppointmentRepository : IAppointmentRepository
         return true;
     }
 
-    public Task<bool> updateAppointmentAsync(UpdateAppointmentRequestDto appointment, int id)
+    public async Task<bool> updateAppointmentAsync(UpdateAppointmentRequestDto appointment, int id)
     {
-        throw new NotImplementedException();
+        using var conn = new SqlConnection(_connectionString);
+        using var comm = new  SqlCommand("UPDATE Appointments SET IdPatient = @IdPatient, IdDoctor = @IdDoctor, AppointmentDate = @AppointmentDate, Status = @Status, Reason = @Reason WHERE IdAppointment = @id", conn);
+        
+        comm.Parameters.AddWithValue("@IdPatient", appointment.IdPatient);
+        comm.Parameters.AddWithValue("@IdDoctor", appointment.IdDoctor);
+        comm.Parameters.AddWithValue("@AppointmentDate", appointment.AppointmentDate);
+        comm.Parameters.AddWithValue("@Status", appointment.Status);
+        comm.Parameters.AddWithValue("@Reason", appointment.Reason);
+        comm.Parameters.AddWithValue("@Id", id);
+        await conn.OpenAsync();
+        await comm.ExecuteNonQueryAsync();
+        return true;
+
+        /*
+         *     public int IdPatient { get; set; }
+    public int IdDoctor { get; set; }
+    public DateTime AppointmentDate { get; set; }
+    public string Status {get; set;} = string.Empty;
+    public string Reason { get; set; } = string.Empty;
+         */
+
     }
 }

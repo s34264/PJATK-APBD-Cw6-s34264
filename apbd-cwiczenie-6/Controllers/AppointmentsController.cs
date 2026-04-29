@@ -44,10 +44,10 @@ public class AppointmentsController : ControllerBase
         }
     }
 
-    [HttpPut]
-    public async Task<ActionResult> UpdateAppointment()
+    [HttpPut("{id:int}")]
+    public async Task<ActionResult> UpdateAppointment([FromBody] UpdateAppointmentRequestDto appointment, int id)
     {
-        throw new NotImplementedException();
+        return Ok(await _appointmentService.updateAppointmentAsync(appointment, id));
     }
 
     [HttpDelete("{id:int}")]
