@@ -54,9 +54,16 @@ public class AppointmentRepository : IAppointmentRepository
      
     }
 
-    public Task<bool> deleteAppointmentAsync(int id)
+    public async Task<bool> deleteAppointmentAsync(int id)
     {
-        throw new NotImplementedException();
+        using var conn = new SqlConnection(_connectionString);
+        using var comm = new  SqlCommand("DELETE FROM Appointments WHERE IdAppointment = @id", conn);
+        comm.Parameters.AddWithValue("@id", id);
+        
+        await conn.OpenAsync();
+
+        await comm.ExecuteNonQueryAsync();
+        return true;
     }
 
     public Task<bool> updateAppointmentAsync(UpdateAppointmentRequestDto appointment, int id)

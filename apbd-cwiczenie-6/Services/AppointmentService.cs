@@ -29,6 +29,6 @@ public class AppointmentService : IAppointmentService
 
     public Task<bool> deleteAppointmentAsync(int id)
     {
-        throw new NotImplementedException();
+        return _appointmentRepository.deleteAppointmentAsync(id);
     }
 }

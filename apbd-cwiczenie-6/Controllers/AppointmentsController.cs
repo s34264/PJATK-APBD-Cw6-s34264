@@ -45,15 +45,15 @@ public class AppointmentsController : ControllerBase
     }
 
     [HttpPut]
-    public async Task<ActionResult> updateAppointment()
+    public async Task<ActionResult> UpdateAppointment()
     {
         throw new NotImplementedException();
     }
 
-    [HttpDelete]
-    public async Task<ActionResult> deleteAllAppointment()
+    [HttpDelete("{id:int}")]
+    public async Task<ActionResult> DeleteAllAppointment(int id)
     {
-        throw new NotImplementedException();
+        return Ok(await _appointmentService.deleteAppointmentAsync(id));
     }
     
 }
