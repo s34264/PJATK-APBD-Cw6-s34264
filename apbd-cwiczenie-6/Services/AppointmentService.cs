@@ -31,4 +31,9 @@ public class AppointmentService : IAppointmentService
     {
         return _appointmentRepository.deleteAppointmentAsync(id);
     }
+
+    public Task<AppointmentDetailsDto> getAppointmentByIdAsync(int id)
+    {
+        return _appointmentRepository.getAppointmentByIdAsync(id);
+    }
 }

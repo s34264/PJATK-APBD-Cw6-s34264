@@ -24,19 +24,26 @@ public class AppointmentsController : ControllerBase
     {
         return Ok(await _appointmentService.getAllAppointments(status, patientLastName));
     }
+    
+    [HttpGet("{id:int}")]
+    public async Task<IActionResult> GetByIdAsync(int id)
+    {
+        return Ok(await _appointmentService.getAppointmentByIdAsync(id));
+    }
 
     [HttpPost]
     public async Task<ActionResult> PostAppointment([FromBody] CreateAppointmentRequestDto appointment)
     {
         try
         {
-            return Ok(await _appointmentService.addAppointmentAsync(new CreateAppointmentRequestDto()
+            await _appointmentService.addAppointmentAsync(new CreateAppointmentRequestDto()
             {
                 IdPatient = appointment.IdPatient,
                 IdDoctor = appointment.IdDoctor,
                 Reason = appointment.Reason,
                 AppointmentDate = appointment.AppointmentDate
-            }));
+            });
+            return Created();
         }
         catch(SqlException ex)
         {
@@ -53,7 +60,16 @@ public class AppointmentsController : ControllerBase
     [HttpDelete("{id:int}")]
     public async Task<ActionResult> DeleteAllAppointment(int id)
     {
-        return Ok(await _appointmentService.deleteAppointmentAsync(id));
+        try
+        {
+            await _appointmentService.deleteAppointmentAsync(id);
+            return NoContent();
+        }
+        catch (SqlException ex)
+        {
+            return BadRequest(ex.Message);
+        }
+       
     }
     
 }

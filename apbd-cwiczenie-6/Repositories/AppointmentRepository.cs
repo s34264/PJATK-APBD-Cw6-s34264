@@ -29,8 +29,8 @@ public class AppointmentRepository : IAppointmentRepository
                                          "WHERE (@Status IS NULL OR a.Status = @Status) " +
                                          "AND (@PatientLastName IS NULL OR p.LastName = @PatientLastName) " +
                                          "ORDER BY a.AppointmentDate", conn);
-        comm.Parameters.AddWithValue("@Status", status);
-        comm.Parameters.AddWithValue("@PatientLastName", patientLastName);
+        comm.Parameters.AddWithValue("@Status", (object?)status ?? DBNull.Value);
+        comm.Parameters.AddWithValue("@PatientLastName", (object?)patientLastName ?? DBNull.Value);
         
         await conn.OpenAsync();
         await using var reader = await comm.ExecuteReaderAsync();
@@ -94,14 +94,30 @@ public class AppointmentRepository : IAppointmentRepository
         await conn.OpenAsync();
         await comm.ExecuteNonQueryAsync();
         return true;
+    }
 
-        /*
-         *     public int IdPatient { get; set; }
-    public int IdDoctor { get; set; }
-    public DateTime AppointmentDate { get; set; }
-    public string Status {get; set;} = string.Empty;
-    public string Reason { get; set; } = string.Empty;
-         */
-
+    public async Task<AppointmentDetailsDto> getAppointmentByIdAsync(int id)
+    {
+        AppointmentDetailsDto appointment = null;
+        using var conn = new SqlConnection(_connectionString);
+        using var comm = new  SqlCommand("SELECT * FROM Appointments WHERE IdAppointment = @id", conn);
+        comm.Parameters.AddWithValue("@id", id);
+        await conn.OpenAsync();
+        using var reader = await comm.ExecuteReaderAsync();
+        while (await reader.ReadAsync())
+        {
+            appointment = new AppointmentDetailsDto()
+            {
+                IdAppointment = (int) reader["IdAppointment"],
+                AppointmentDate =  (DateTime) reader["AppointmentDate"],
+                Status = (string) reader["Status"],
+                Reason = (string) reader["Reason"],
+                CreatedAt = (DateTime) reader["CreatedAt"],
+                IdDoctor = (int) reader["IdDoctor"],
+                IdPatient = (int) reader["IdPatient"],
+                InternalNotes =   reader["InternalNotes"] == DBNull.Value ? DBNull.Value.ToString()  : (string) reader["InternalNotes"]
+            };
+        }
+        return appointment;
     }
 }
